@@ -10,7 +10,7 @@ class WindowClass
 {
 public:
     WindowClass()
-        : currentPath(fs::current_path()) {};
+        : currentPath(fs::current_path()), selectedEntry(fs::path{}) {};
 
     void Draw(std::string_view label);
 
@@ -23,6 +23,7 @@ private:
 private:
     //std::string currentPath;  // use fs::path instead, better
     fs::path currentPath;
+    fs::path selectedEntry;
 };
 
 void render(WindowClass &window_obj);

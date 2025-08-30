@@ -54,10 +54,9 @@ void WindowClass::DrawContent()
      *
      * @param fs::directory_iterator
      */
-    // creates an iterator to go through file directory like i++ loop, or foreach
-    //for (const std::filesystem::directory_entry &entry : fs::directory_iterator(currentPath))
-    for (const auto &entry : fs::directory_iterator(currentPath))  // & is reference, read-only
+    for (const auto &entry : fs::directory_iterator(currentPath))
     {
+        const auto is_selected = entry.path() == selectedEntry;
         const auto is_directory = entry.is_directory();
         const auto is_file = entry.is_regular_file();
 
@@ -67,7 +66,15 @@ void WindowClass::DrawContent()
         else if(is_file)
             entry_name = "[F] " + entry_name;
 
-        ImGui::Text("%s", entry_name.c_str());
+        //if entry selected = true
+        if (ImGui::Selectable(entry_name.c_str(), is_selected))
+        {
+            if (is_directory)
+                currentPath /= entry.path().filename(); //appends the subdirectory name
+
+            // becomes full path just clicked
+            selectedEntry = entry.path();
+        }
     }
 }
 
@@ -78,7 +85,25 @@ void WindowClass::DrawActions()
 
 void WindowClass::DrawFilter()
 {
-    ImGui::Text(" Draw Filter");
+    static char extention_filter[16] = {"\0"};
+
+    ImGui::Text("Filter by extention");
+    ImGui::SameLine();
+    ImGui::InputText("###inFilter", extention_filter, sizeof(extention_filter)); //"###" makes it hidden label
+
+    if (std::strlen(extention_filter) == 0)
+        return;
+
+    auto filtered_file_count = std::size_t{0};
+
+    for (const auto &entry : fs::directory_iterator(currentPath))
+    {
+        if (!fs::is_regular_file(entry))  //if not file extention
+            continue; //skip this iteration
+
+        if (entry.path().extension().string() == extention_filter)
+            ++filtered_file_count;
+    }
 }
 
 void render(WindowClass &window_obj)
