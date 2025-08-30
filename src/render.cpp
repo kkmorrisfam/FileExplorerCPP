@@ -80,7 +80,28 @@ void WindowClass::DrawContent()
 
 void WindowClass::DrawActions()
 {
-    ImGui::Text(" Draw Actions");
+    if (fs::is_directory(selectedEntry))
+        ImGui::Text("Selected dir: %s", selectedEntry.string().c_str());
+    else if (fs::is_regular_file(selectedEntry))
+        ImGui::Text("Selected file: %s", selectedEntry.string().c_str());
+    else
+    {
+        ImGui::Text("Nothing selected!");
+    }
+
+    if (fs::is_regular_file(selectedEntry) && ImGui::Button("Open"))
+        openFileWithDefaultEditor();
+
+    if (ImGui::Button("Rename"))
+        ImGui::OpenPopup("Rename File");
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Delete"))
+        ImGui::OpenPopup("Delete File");
+
+    renameFilePopup();
+    deleteFilePopup();
 }
 
 void WindowClass::DrawFilter()
@@ -103,6 +124,75 @@ void WindowClass::DrawFilter()
 
         if (entry.path().extension().string() == extention_filter)
             ++filtered_file_count;
+    }
+}
+
+void WindowClass::openFileWithDefaultEditor()
+{
+
+}
+
+void WindowClass::renameFilePopup()
+{
+    //name must match what's passed when method called
+    if (ImGui::BeginPopupModal("Rename File"))
+    {
+        // variable to store the new file name in text box
+        static char buffer_name[512] = {'\0'};
+
+        ImGui::Text("New name: ");
+        ImGui::InputText("###newName", buffer_name, sizeof(buffer_name));
+
+        if (ImGui::Button("Rename"))
+        {
+            auto new_path = selectedEntry.parent_path() / buffer_name;
+            if (renameFile(selectedEntry, new_path))
+            {
+                ImGui::EndPopup();
+                return;
+            }
+        }
+        ImGui::EndPopup();
+    }
+
+}
+
+void WindowClass::deleteFilePopup()
+{
+    if (ImGui::BeginPopupModal("Delete File"))
+    {
+
+        ImGui::EndPopup();
+    }
+}
+
+
+bool WindowClass::renameFile(const fs::path &old_path, const fs::path &new_path)
+{
+    try
+    {
+        fs::rename(old_path, new_path);
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
+    }
+
+}
+
+bool WindowClass::deleteFile(const fs::path &path)
+{
+    try
+    {
+        fs::remove(path);
+        return true;
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return false;
     }
 }
 
