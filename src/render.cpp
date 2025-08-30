@@ -46,7 +46,29 @@ void WindowClass::DrawMenu()
 
 void WindowClass::DrawContent()
 {
-    ImGui::Text(" Draw Content");
+    /**
+     * @brief Construct a new for object
+     * For each filesystem directory entry in the directory at currentPath,
+     * give me a read-only reference named entry. I don’t need to know or write
+     * out the full type, just let the compiler deduce it.
+     *
+     * @param fs::directory_iterator
+     */
+    // creates an iterator to go through file directory like i++ loop, or foreach
+    //for (const std::filesystem::directory_entry &entry : fs::directory_iterator(currentPath))
+    for (const auto &entry : fs::directory_iterator(currentPath))  // & is reference, read-only
+    {
+        const auto is_directory = entry.is_directory();
+        const auto is_file = entry.is_regular_file();
+
+        auto entry_name = entry.path().filename().string();
+        if(is_directory)
+            entry_name = "[D] " + entry_name;
+        else if(is_file)
+            entry_name = "[F] " + entry_name;
+
+        ImGui::Text("%s", entry_name.c_str());
+    }
 }
 
 void WindowClass::DrawActions()
