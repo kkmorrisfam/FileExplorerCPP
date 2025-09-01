@@ -22,6 +22,7 @@ void WindowClass::Draw(std::string_view label)
     DrawMenu();
     ImGui::Separator();
     DrawContent();
+    ImGui::SetCursorPosY(ImGui::GetWindowHeight()-100.0F);
     ImGui::Separator();
     DrawActions();
     ImGui::Separator();
