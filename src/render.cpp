@@ -161,8 +161,6 @@ void WindowClass::renameFilePopup()
                 renameDialogOpen = false;
                 selectedEntry = new_path;
                 std::memset(buffer_name, 0, sizeof(buffer_name));
-                //ImGui::EndPopup();
-                //return;
             }
         }
 
@@ -180,18 +178,22 @@ void WindowClass::deleteFilePopup()
 {
     if (ImGui::BeginPopupModal("Delete File", &deleteDialogOpen))
     {
-        ImGui::Text("Are you sure you want to delete %d?", selectedEntry.filename().string().c_str());
+        //replace %s with string value of filename
+        ImGui::Text("Are you sure you want to delete %s?",
+            selectedEntry.filename().string().c_str());
 
         if (ImGui::Button("Yes"))
         {
-
+            if (deleteFile(selectedEntry))
+                selectedEntry.clear();
+            deleteDialogOpen = false;    //reset flag
         }
-        
+
         ImGui::SameLine();
 
         if (ImGui::Button("No"))
         {
-
+            deleteDialogOpen = false;   //reset flag
         }
 
         ImGui::EndPopup();
