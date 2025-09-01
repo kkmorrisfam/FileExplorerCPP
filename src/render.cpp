@@ -20,9 +20,9 @@ void WindowClass::Draw(std::string_view label)
     ImGui::Begin(label.data(), nullptr, window_flags);
 
     DrawMenu();
-    ImGui::Separator();
+    ImGui::Separator();  //adds horizontal line
     DrawContent();
-    ImGui::SetCursorPosY(ImGui::GetWindowHeight()-100.0F);
+    ImGui::SetCursorPosY(ImGui::GetWindowHeight()-100.0F);   //shift next position for next element will be drawn
     ImGui::Separator();
     DrawActions();
     ImGui::Separator();
@@ -33,6 +33,7 @@ void WindowClass::Draw(std::string_view label)
 
 void WindowClass::DrawMenu()
 {
+    //buttons return true or false, true if clicked
     if (ImGui::Button("Go Up"))
     {
         if(currentPath.has_parent_path())
@@ -40,6 +41,7 @@ void WindowClass::DrawMenu()
             currentPath = currentPath.parent_path();
         }
     }
+    //will add the next element on same line
     ImGui::SameLine();
 
     ImGui::Text("Current directory: %s", currentPath.string().c_str()); //returns correct pointer type
@@ -67,7 +69,8 @@ void WindowClass::DrawContent()
         else if(is_file)
             entry_name = "[F] " + entry_name;
 
-        //if entry selected = true
+        //if entry selected = true; Selectable creates entry as selectable element
+        //because it's in a foreach type loop, each element is selectable
         if (ImGui::Selectable(entry_name.c_str(), is_selected))
         {
             if (is_directory)
@@ -87,17 +90,30 @@ void WindowClass::DrawActions()
         ImGui::Text("Selected file: %s", selectedEntry.string().c_str());
     else
     {
-        ImGui::Text("Nothing selected!");
+        //ImGui::Text("Nothing selected!");
+        ImGui::Text("Selected file: n/a");
+        //creates an invisible button to take the space, so that
+        //when buttons for "rename", etc come, the Filter by Extention doesn't shift down
+        //this is one option. Push/Pop the styling change
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.0f);
+        ImGui::Button("Non-clickable button");
+        ImGui::PopStyleVar();
+        return;
     }
 
-    ImGui::SameLine();
+
 
     if (fs::is_regular_file(selectedEntry) && ImGui::Button("Open"))
         openFileWithDefaultEditor();
 
+    ImGui::SameLine();
+
     if (ImGui::Button("Rename"))
     {
         renameDialogOpen = true;
+
+        //lets ImGui know a popup window will be comming
+        //name must match exactly when/where BeginPopupModal is called
         ImGui::OpenPopup("Rename File");
     }
 
@@ -109,7 +125,7 @@ void WindowClass::DrawActions()
         ImGui::OpenPopup("Delete File");
     }
 
-
+    //call the method to open the popup and run code.
     renameFilePopup();
     deleteFilePopup();
 }
