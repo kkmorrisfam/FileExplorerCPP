@@ -89,16 +89,25 @@ void WindowClass::DrawActions()
         ImGui::Text("Nothing selected!");
     }
 
+    ImGui::SameLine();
+
     if (fs::is_regular_file(selectedEntry) && ImGui::Button("Open"))
         openFileWithDefaultEditor();
 
     if (ImGui::Button("Rename"))
+    {
+        renameDialogOpen = true;
         ImGui::OpenPopup("Rename File");
+    }
 
     ImGui::SameLine();
 
     if (ImGui::Button("Delete"))
+    {
+        deleteDialogOpen = true;
         ImGui::OpenPopup("Delete File");
+    }
+
 
     renameFilePopup();
     deleteFilePopup();
@@ -134,8 +143,9 @@ void WindowClass::openFileWithDefaultEditor()
 
 void WindowClass::renameFilePopup()
 {
+    //static auto dialog_opened = false;
     //name must match what's passed when method called
-    if (ImGui::BeginPopupModal("Rename File"))
+    if (ImGui::BeginPopupModal("Rename File", &renameDialogOpen))
     {
         // variable to store the new file name in text box
         static char buffer_name[512] = {'\0'};
@@ -148,10 +158,19 @@ void WindowClass::renameFilePopup()
             auto new_path = selectedEntry.parent_path() / buffer_name;
             if (renameFile(selectedEntry, new_path))
             {
-                ImGui::EndPopup();
-                return;
+                renameDialogOpen = false;
+                selectedEntry = new_path;
+                std::memset(buffer_name, 0, sizeof(buffer_name));
+                //ImGui::EndPopup();
+                //return;
             }
         }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Cancel"))
+            renameDialogOpen = false;
+
         ImGui::EndPopup();
     }
 
@@ -159,8 +178,21 @@ void WindowClass::renameFilePopup()
 
 void WindowClass::deleteFilePopup()
 {
-    if (ImGui::BeginPopupModal("Delete File"))
+    if (ImGui::BeginPopupModal("Delete File", &deleteDialogOpen))
     {
+        ImGui::Text("Are you sure you want to delete %d?", selectedEntry.filename().string().c_str());
+
+        if (ImGui::Button("Yes"))
+        {
+
+        }
+        
+        ImGui::SameLine();
+
+        if (ImGui::Button("No"))
+        {
+
+        }
 
         ImGui::EndPopup();
     }
@@ -174,7 +206,7 @@ bool WindowClass::renameFile(const fs::path &old_path, const fs::path &new_path)
         fs::rename(old_path, new_path);
         return true;
     }
-    catch(const std::exception& e)
+    catch(const std::exception &e)
     {
         std::cerr << e.what() << '\n';
         return false;
@@ -189,7 +221,7 @@ bool WindowClass::deleteFile(const fs::path &path)
         fs::remove(path);
         return true;
     }
-    catch(const std::exception& e)
+    catch(const std::exception &e)
     {
         std::cerr << e.what() << '\n';
         return false;
