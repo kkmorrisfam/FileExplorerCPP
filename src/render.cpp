@@ -138,7 +138,16 @@ void WindowClass::DrawFilter()
 
 void WindowClass::openFileWithDefaultEditor()
 {
+    //from stackoverflow for different op systems
+    #ifdef _WIN32
+        const auto command = "start \"\" \"" + selectedEntry.string() + "\"";
+    #elif __APPLE__
+        const auto command = "open \"" + selectedEntry.string() + "\"";
+    #else
+        const auto command = "xdg-open \"" + selectedEntry.string() + "\"";
+    #endif
 
+        std::system(command.c_str());
 }
 
 void WindowClass::renameFilePopup()
